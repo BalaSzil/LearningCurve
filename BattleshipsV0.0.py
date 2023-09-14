@@ -1,15 +1,38 @@
 # Functions
 import string
 import random
-def randomize(ship_p):
-    return ship_p[random.randrange(len(ship_p))]
 def rowing(row_name):
     row_name = " ".join(row_name)
     return row_name
 def exes(name_of_list):
     name_of_list.extend(list("X"*10))
     return name_of_list
-
+def vector(name_of_master_list):
+    pos_value = random.randrange((len(name_of_master_list)))
+    return pos_value
+def vector_sans_l(name_of_master_list, ship_length):
+    pos_value = random.randrange((len(name_of_master_list)) - ship_length)
+    return pos_value
+def placement(ship, ship_length):
+    while ship > 0:
+        placement_decision = random.randrange(2)
+        if placement_decision == 0:
+            x = vector(Master_list)
+            y = vector_sans_l(Master_list[x], ship_length)
+            for i in range(ship_length):
+                if all(Master_list[y + i][x] == "X" for i in range(ship_length)):
+                    for i in range(ship_length):
+                        Master_list[y + i][x] = "S"
+                    ship -= 1
+        elif placement_decision == 1:
+            x = vector_sans_l(Master_list, ship_length)
+            y = vector(Master_list)
+            for i in range(ship_length):
+                if all(Master_list[y][x + i] == "X" for i in range(ship_length)):
+                    for i in range(ship_length):
+                        Master_list[y][x + i] = "S"
+                    ship -= 1
+    
 # Setup
 print("Welcome! Let's play a round, I'll prepare my battleships!")
 Carriers = 1
@@ -38,26 +61,30 @@ H = []
 I = []
 J = []
 Master_list = [exes(A), exes(B), exes(C), exes(D), exes(E), exes(F), exes(G), exes(H), exes(I), exes(J)]
-helper = 0
-random_helper = random.randrange((len(Master_list)) - Carrier_l)
-print(len(Master_list))
-while Carriers > 0:
-    helper = random.randrange(0, (9 - Carrier_l))
-    placement_decision = random.randrange(1)
-    if placement_decision == 0:
-        Master_list = Master_list[:random_helper] + ["S"] + Master_list[random_helper+Carrier_l:]
-        Carriers -= 1
-        # else:
-        #     Carriers -= 1
+# letter = C
+# position = ord(letter) - ord(A)
+# print(position)
+# print(ord("A"))
 
-print(len(Master_list))
+placement(Carriers, Carrier_l)
+placement(Battleships, Battleship_l)
+placement(Cruisers, Cruiser_l)
+placement(Submarines, Submarine_l)
+placement(Destroyers, Destroyer_l)
+
+count = 0
+for sublist in Master_list:
+    for element in sublist:
+        if element == "S":
+            count += 1
+print(count)
 print(Master_list)
 
 
-# print(f"I have {Carriers} carriers, {Battleships} battleships, {Cruisers} cruisers, {Submarines} submarines, and {Destroyers} destroyers.")
-# print(f"Carriers are {Carrier_l}, the battleships {Battleship_l}, the cruisers {Cruiser_l}, the submarines {Submarine_l}, and the destroyers {Destroyer_l} large.")
-# print("None are placed diagonally.")
-# print(f"You need a total of {Force} hits to win!")
+print(f"I have {Carriers} carriers, {Battleships} battleships, {Cruisers} cruisers, {Submarines} submarines, and {Destroyers} destroyers.")
+print(f"Carriers are {Carrier_l}, the battleships {Battleship_l}, the cruisers {Cruiser_l}, the submarines {Submarine_l}, and the destroyers {Destroyer_l} large.")
+print("None are placed diagonally.")
+print(f"You need a total of {Force} hits to win!")
 # rows = (string.ascii_uppercase[0:10])
 # columns = (range(1,11))
 
