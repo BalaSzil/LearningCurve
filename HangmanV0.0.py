@@ -8,36 +8,31 @@ def Random_Item_From_Collection(collection):
 def Already_Tried_That(player_guess):
     if player_guess in previous_guess:
         return True
-    else:
-        return False
+    return False
     
 
 def Not_Single_Letter_Nor_Solve(guess, selected_word):
     if guess != selected_word and len(guess) != 1:
         return True
-    else:
-        return False
+    return False
     
     
 def Not_A_Letter(player_guess):
     if player_guess.isalpha():
         return False
-    else:
-        return True
+    return True
     
     
 def Full_Correct_Guess(player_guess):
     if player_guess == selected_word:
         return True
-    else:
-        return False
+    return False
     
 
 def Wrong_Guess(player_guess):
     if player_guess not in selected_word:
        return True
-    else:
-       return False
+    return False
 
 
 words = ["tequila", "sunset", "disco", "dancer", "column", "mariner", "lighthouse", "insanity", "janitor", "rat", "cheese", "peach", "laxative", "archer", "tactical", "turtleneck", "oedipus", "literary", "difficulty", "msspelled", "xenophon"]

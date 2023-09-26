@@ -4,83 +4,63 @@ import copy
 from random import randrange
 
 
-def Fill_Sublist_With_X(name_of_list):
-    name_of_list.extend(list("X"*10))
-    return name_of_list
+def Fill_With_Recurring_Characters(row, character, length):
+    row.extend(list(f"{character}"*length))
+    return row
 
 
-def Coordinate(name_of_board):
-    cord_value = randrange((len(name_of_board)))
+def Generate_Coordinate(board):
+    cord_value = randrange((len(board)))
     return cord_value
 
 
-def Coordinate_Sans_Length(name_of_board, ship_length):
-    cord_value = randrange((len(name_of_board)) - ship_length)
+def Generate_Coordinate_Ship_Start(board, ship_length):
+    cord_value = randrange((len(board)) - ship_length)
     return cord_value
 
 
-def Guess_Not_Correct_Length(player_guess):
-    if len(player_guess) not in (2,3):
-        return True
-    else:
+def Is_Player_Input_Properly_Formatted(player_guess):
+    if not player_guess[0].isalpha() or not player_guess[1:].isnumeric():
         return False
+    return True
 
-    
-def Guess_Not_Correct_Format(player_guess):
-    if not guess[0].isalpha() or not guess[1].isnumeric():
-        return True
-    else:
+def Is_Player_Input_Within_Bounds(player_guess):
+    if hor_position >= len(hidden_board):
         return False
-
-
-def Guess_Out_Of_Bounds(player_guess):
-    if len(player_guess) == 3:
-        if ord(player_guess[0].upper()) < 65:
-            return True
-        elif ord(player_guess[0].upper()) >= (65 + len(hidden_board)):
-            return True
-        elif int(player_guess[1:]) > len(hidden_board[0]):
-            return True
-    elif len(player_guess) == 2:
-        if ord(player_guess[0].upper()) < 65 or ord(player_guess[0].upper()) >= (65 + len(hidden_board)):
-            return True
-    elif len(player_guess) == 3 and int(player_guess[1:]) > len(hidden_board[0]):
-        return True
-    else:
+    elif ver_position > len(hidden_board[0]) - 1:
         return False
+    return True
 
 
-def Placement(ship_no, ship_length):
+def Place_Ships(ship_no, ship_length):
     while ship_no > 0:
         is_vertical = randrange(2) == 0
         if is_vertical:
-            x = Coordinate(hidden_board)
-            y = Coordinate_Sans_Length(hidden_board, ship_length)
+            x = Generate_Coordinate(hidden_board)
+            y = Generate_Coordinate_Ship_Start(hidden_board, ship_length)
             if all(hidden_board[y + i][x] == "X" for i in range(ship_length)):
                 for i in range(ship_length):
                     hidden_board[y + i][x] = "S"
                 ship_no -= 1
         else:
-            x = Coordinate_Sans_Length(hidden_board, ship_length)
-            y = Coordinate(hidden_board)
+            x = Generate_Coordinate_Ship_Start(hidden_board, ship_length)
+            y = Generate_Coordinate(hidden_board)
             if all(hidden_board[y][x + i] == "X" for i in range(ship_length)):
                 for i in range(ship_length):
                     hidden_board[y][x + i] = "S"
                 ship_no -= 1
 
 
-def Already_Tried_That(guess_pos):
-    if guess_pos == "H" or guess_pos == "O":
+def Already_Tried_That(Is_Guess_pos):
+    if Is_Guess_pos == "H" or Is_Guess_pos == "O":
         return True
-    else:
-        return False
+    return False
     
     
-def Ship_Is_Hit(guess_pos):
-    if guess_pos == "S":
+def Ship_Is_Hit(Is_Guess_pos):
+    if Is_Guess_pos == "S":
         return True
-    else:
-        return False
+    return False
         
     
 def Print_Visible_Board(visible_board):
@@ -92,19 +72,6 @@ def Print_Visible_Board(visible_board):
         print(visible_board[helper : helper + 1], end = " ")
         print(string.ascii_uppercase[helper])
         helper += 1
-# for i in columns:
-#     print(i, end = " ")
-# print()
-# for Y in rows:
-#     for X in range (10):
-#         print("X", end = " ")
-#     print(rows[helper : helper + 1])
-#     helper += 1
-    
-# def Print_Table(masterList):
-#     for i in range(len(masterList)):
-#         print(masterList[i])
-#         print()
     
     
 # Setup
@@ -119,7 +86,7 @@ G = []
 H = []
 I = []
 J = []
-hidden_board = [Fill_Sublist_With_X(A), Fill_Sublist_With_X(B), Fill_Sublist_With_X(C), Fill_Sublist_With_X(D), Fill_Sublist_With_X(E), Fill_Sublist_With_X(F), Fill_Sublist_With_X(G), Fill_Sublist_With_X(H), Fill_Sublist_With_X(I), Fill_Sublist_With_X(J)]
+hidden_board = [Fill_With_Recurring_Characters(A, "X", 10), Fill_With_Recurring_Characters(B, "X", 10), Fill_With_Recurring_Characters(C, "X", 10), Fill_With_Recurring_Characters(D, "X", 10), Fill_With_Recurring_Characters(E, "X", 10), Fill_With_Recurring_Characters(F, "X", 10), Fill_With_Recurring_Characters(G, "X", 10), Fill_With_Recurring_Characters(H, "X", 10), Fill_With_Recurring_Characters(I, "X", 10), Fill_With_Recurring_Characters(J, "X", 10)]
 visible_board = copy.deepcopy(hidden_board)
 Carriers = 1
 Battleships = 2
@@ -136,13 +103,13 @@ force = (Carriers * Carrier_l
          + Cruisers * Cruiser_l
          + Submarines * Submarine_l
          + Destroyers * Destroyer_l)
-torpedos = 10
+torpedos = 30
 
-Placement(Carriers, Carrier_l)
-Placement(Battleships, Battleship_l)
-Placement(Cruisers, Cruiser_l)
-Placement(Submarines, Submarine_l)
-Placement(Destroyers, Destroyer_l)
+Place_Ships(Carriers, Carrier_l)
+Place_Ships(Battleships, Battleship_l)
+Place_Ships(Cruisers, Cruiser_l)
+Place_Ships(Submarines, Submarine_l)
+Place_Ships(Destroyers, Destroyer_l)
 
 # Playerboard
 print(f"I have {Carriers} carriers, {Battleships} battleships, {Cruisers} cruisers, {Submarines} submarines, and {Destroyers} destroyers.")
@@ -161,43 +128,37 @@ for Y in rows:
         print("X", end = " ")
     print(rows[helper : helper + 1])
     helper += 1
-    
-    
+
+
 # Gameplay
 while torpedos > 0 and force > 0:
     guess = input(f"You can only miss {torpedos} times! Use the NumberLetter (e.g. A1) format and make a guess! ")
     guess = guess.upper()
-    if Guess_Not_Correct_Length(guess):
-        print("Guess_Not_Correct_Length")
-        # print("Please use the NumberLetter format. One letter, one number. No more, no less.")
-    elif Guess_Not_Correct_Format(guess):
-        print("Guess_Not_Correct_Format")
-        # print("Please use letters and numbers in the correct format.")
-    elif Guess_Out_Of_Bounds(guess):
-        print("Guess_Out_Of_Bounds")
-        # print("Please use one letter, one number, within the gameboard's range.")
+    if Is_Player_Input_Properly_Formatted(guess) is False:
+        print("Please use the NumberLetter format. One letter, one number. No more, no less.")
     else:
-        letter = guess[0]
-        number = int(guess[1:])
-        hor_position = ord(letter) - (ord("A"))
-        ver_position = (number - 1)
-        guess_pos = hidden_board[hor_position][ver_position]
-        if Ship_Is_Hit(guess_pos):
-            force -= 1
-            hidden_board[hor_position][ver_position] = "H"
-            visible_board[hor_position][ver_position] = "H"
-            print(f"That's a hit!!! The enemy is left at {force} strength!")
-            Print_Visible_Board(visible_board)
-        elif Already_Tried_That(guess_pos):
-            torpedos -= 1
-            print(f"Hey, you've already tried that! You can only try {torpedos} more times!")
-            Print_Visible_Board(visible_board)
+        hor_position = ord(guess[0]) - (ord("A"))
+        ver_position = int(guess[1:]) - 1
+        if Is_Player_Input_Within_Bounds(guess) is False:
+            print("Please use one letter, one number, within the gameboard's range.")
         else:
-            hidden_board[hor_position][ver_position] = "O"
-            visible_board[hor_position][ver_position] = "O"
-            torpedos -= 1
-            print(f"That's a miss! You can only try {torpedos} more times!")
-            Print_Visible_Board(visible_board)
-            
-            
-# for playerboard print hidden board as above, but print x for x and s, print o and h as they are
+            guess_pos = hidden_board[hor_position][ver_position]
+            visible_guess_pos = visible_board[hor_position][ver_position]
+            if Already_Tried_That(visible_guess_pos):
+                torpedos -= 1
+                print(f"Hey, you've already tried that! You can only miss {torpedos} more times!")
+                Print_Visible_Board(visible_board)
+            elif Ship_Is_Hit(guess_pos):
+                force -= 1
+                visible_board[hor_position][ver_position] = "H"
+                print(f"That's a hit!!! The enemy is left at {force} strength!")
+                Print_Visible_Board(visible_board)
+            else:
+                torpedos -= 1
+                visible_board[hor_position][ver_position] = "O"
+                print(f"That's a miss! You can only try {torpedos} more times!")
+                Print_Visible_Board(visible_board)
+if torpedos == 0:
+    print("Bad luck, Captain! We've lost!!!")
+if force == 0:
+    print("Well done, Captain! We won!!!")
