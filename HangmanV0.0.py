@@ -5,36 +5,6 @@ def Random_Item_From_Collection(collection):
     return collection[random.randrange(len(collection))]
 
 
-def Already_Tried_That(player_guess):
-    if player_guess in previous_guess:
-        return True
-    return False
-    
-
-def Not_Single_Letter_Nor_Solve(guess, selected_word):
-    if guess != selected_word and len(guess) != 1:
-        return True
-    return False
-    
-    
-def Not_A_Letter(player_guess):
-    if player_guess.isalpha():
-        return False
-    return True
-    
-    
-def Full_Correct_Guess(player_guess):
-    if player_guess == selected_word:
-        return True
-    return False
-    
-
-def Wrong_Guess(player_guess):
-    if player_guess not in selected_word:
-       return True
-    return False
-
-
 words = ["tequila", "sunset", "disco", "dancer", "column", "mariner", "lighthouse", "insanity", "janitor", "rat", "cheese", "peach", "laxative", "archer", "tactical", "turtleneck", "oedipus", "literary", "difficulty", "msspelled", "xenophon"]
 welcome = ["Hey there! Welcome!", "How you doin'?", "What are you looking at, weirdo? Oh yeah, the game...", "So glad to see you here!"]
 fail_insults = ["Wroooong! You suck!", "Wow, just, wow...", "Andrew, is that you?", "Hint: the word is in English. Do you speak it??? DOES HE LOOK LIKE A BI... sorry, sorry..."]
@@ -48,34 +18,40 @@ print(Random_Item_From_Collection(welcome))
 print(representation)
 
 
+
 tries = 8
 while tries > 0:
     guess = input(Random_Item_From_Collection(guess_prompts))
     guess = guess.lower()
-    if Already_Tried_That(guess):
+    Already_Tried_That = guess in previous_guess
+    if Already_Tried_That:
         tries -= 1
         print(f"Come on, mate, you've already tried that! There goes one of your guesses, you've got {tries} remaining...")
     else:
         previous_guess.append(guess)
-        if Not_Single_Letter_Nor_Solve(guess, selected_word):
+        Not_Single_Letter_Nor_Solve = guess != selected_word and len(guess) != 1
+        Not_A_Letter = not guess.isalpha()
+        Full_Correct_Guess = guess == selected_word
+        Wrong_Guess = guess not in selected_word
+        if Not_Single_Letter_Nor_Solve:
             tries -= 1
             print(f"Either guess the full word correctly, or take it one letter at a time, buddy. You have {tries} guesses remaining!")  
-        elif Not_A_Letter(guess):
+        elif Not_A_Letter:
             tries -= 1
             print(f"Come on, buddy... just what are you trying to pull? You have {tries} guesses remaining!")
-        elif Full_Correct_Guess(guess):
+        elif Full_Correct_Guess:
             print("You got it all in one! How could you do this to me???")
             break
-        elif Wrong_Guess(guess):
+        elif Wrong_Guess:
             tries -= 1
             print(Random_Item_From_Collection(fail_insults), f"You have {tries} guesses remaining!")
         elif guess in selected_word:
-            for i in range(len(selected_word)):
+            for i, word in enumerate(selected_word):
                 if selected_word[i] == guess:
                     representation = representation[:i] + guess + representation[i+1:]
             if representation == selected_word:
                 print("I guess we're done here...")
-                break   
+                break
             print(Random_Item_From_Collection(success_insults), representation)
 if tries == 0:
     print(Random_Item_From_Collection(final_insults), f"The word was {selected_word}!")
