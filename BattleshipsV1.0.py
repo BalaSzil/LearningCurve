@@ -34,34 +34,129 @@ def Generate_Coordinate_Ship_Start(board, ship_length):
 
 
 def Is_Player_Input_Properly_Formatted(player_guess):
-    if player_guess and player_guess[0].isalpha() and player_guess[1:].isnumeric():
-        return True
-    return False
+    return player_guess and player_guess[0].isalpha() and player_guess[1:].isnumeric()
+       
 
 
-def Is_Player_Input_Within_Bounds():
+def Is_Player_Input_Within_Bounds(hor_position, ver_position):
     if ord(hor_position) - 65 < len(hidden_board) and ver_position <= len(hidden_board["A"]) - 1 and ver_position != -1:
         return True
     return False
 
 
-def Place_Ships(ship_no, ship_length):
+def Place_Ships(ship_no, ship_length, board):
     while ship_no > 0:
         is_vertical = randrange(2) == 0
         if is_vertical:
-            x = Generate_Coordinate(hidden_board)
-            y = string.ascii_uppercase[Generate_Coordinate_Ship_Start(hidden_board, ship_length)]
-            if all(hidden_board[chr(ord(y) + i)][x] == "X" for i in range(ship_length)):
+            x = Generate_Coordinate(board)
+            y = string.ascii_uppercase[Generate_Coordinate_Ship_Start(board, ship_length)]
+            if all(board[chr(ord(y) + i)][x] == "X" for i in range(ship_length)):
                 for i in range(ship_length):
-                    hidden_board[chr(ord(y) + i)][x] = "S"
+                    board[chr(ord(y) + i)][x] = "S"
                 ship_no -= 1
         else:
-            x = Generate_Coordinate_Ship_Start(hidden_board, ship_length)
-            y = string.ascii_uppercase[Generate_Coordinate(hidden_board)]
-            if all(hidden_board[chr(ord(y))][x + i] == "X" for i in range(ship_length)):
+            x = Generate_Coordinate_Ship_Start(board, ship_length)
+            y = string.ascii_uppercase[Generate_Coordinate(board)]
+            if all(board[chr(ord(y))][x + i] == "X" for i in range(ship_length)):
                 for i in range(ship_length):
-                    hidden_board[chr(ord(y))][x + i] = "S"
+                    board[chr(ord(y))][x + i] = "S"
                 ship_no -= 1
+
+
+def Player_Place_Ship(ship_no, ship_length):
+    ships_to_place = ship_no
+    print(f"You have {ship_no} ships of {ship_length} length to place.")
+    Print_Board(player_board)
+    
+    while ships_to_place > 0:
+        start_point_input = input("Where would you like to place the ship? Give me the starting point. ")
+        start_point_input = start_point_input.upper()
+    
+        if not Is_Player_Input_Properly_Formatted(start_point_input):
+            print("Please use the NumberLetter format. One letter, one number. No more, no less.")
+            continue
+        
+        hor_position = start_point_input[0]
+        ver_position = int(start_point_input[1:]) - 1
+        
+        if not Is_Player_Input_Within_Bounds(hor_position, ver_position):
+            print("Please use one letter, one number, within the gameboard's range.")
+            continue
+        
+        placement_pos = player_board[hor_position][ver_position]
+        Is_It_Occupied = placement_pos == "S"
+        
+        if Is_It_Occupied:
+            print("There's already a ship there. Let's try again.")
+            continue
+        
+        else:
+            player_board[hor_position][ver_position] = "S"
+            available_positions = []
+            Print_Board(player_board)
+            #szomszed poziciok tesztelesere lehet directions lista v dictionary (1,0),(-1,0),(0,1),(0,-1)
+            ok_right = ver_position + ship_length <= len(hidden_board["A"]) 
+            ok_left = ver_position - ship_length + 1 > -1
+            ok_up = ord(hor_position) - ship_length - 65 + 1 >= 0
+            ok_down = ord(hor_position) + ship_length - 65 <= len(hidden_board)
+            ok_right_placement = str(hor_position) + str(ver_position + ship_length)
+            ok_left_placement = str(hor_position) + str(ver_position + 2 - ship_length)
+            ok_up_placement = str(chr(ord(hor_position) + 1 - ship_length)) + str(ver_position + 1)
+            ok_down_placement = str(chr(ord(hor_position) - 1 + ship_length)) + str(ver_position + 1)
+        
+            if ok_left and player_board[hor_position][ver_position - ship_length + 1] != "S":
+                available_positions.append(ok_left_placement)
+                if ok_left_placement in available_positions:
+                    for i in range(ship_length - 1):
+                        if ok_left_placement in available_positions and player_board[hor_position][ver_position - ship_length + 1 + i] == "S":
+                            available_positions.remove(ok_left_placement)
+            if ok_right and player_board[hor_position][ver_position + ship_length - 1] != "S":
+                available_positions.append(ok_right_placement)
+                if ok_right_placement in available_positions:
+                    for i in range(ship_length - 1):
+                        if ok_right_placement in available_positions and player_board[hor_position][ver_position + ship_length - 1 - i] == "S":
+                            available_positions.remove(ok_right_placement)
+            if ok_up and player_board[str(chr(ord(hor_position) + 1 - ship_length))][ver_position] != "S":
+                available_positions.append(ok_up_placement)
+                if ok_up_placement in available_positions:
+                    for i in range(ship_length - 1):
+                        if ok_up_placement in available_positions and player_board[str(chr(ord(hor_position) + 1 + i - ship_length))][ver_position] == "S":
+                            available_positions.remove(ok_up_placement)
+            if ok_down and player_board[str(chr(ord(hor_position) - 1 + ship_length))][ver_position] != "S":
+                available_positions.append(ok_down_placement)
+                if ok_down_placement in available_positions:
+                    for i in range(ship_length - 1):
+                        if ok_down_placement in available_positions and player_board[str(chr(ord(hor_position) - 1 - i + ship_length))][ver_position] == "S":
+                            available_positions.remove(ok_down_placement)
+            
+            if bool(available_positions) == False:
+                print("There are no available positions from this starting point. Please select a new one!")
+                player_board[hor_position][ver_position] = "X"
+                continue
+            
+            end_point_input = input(f"One end point of the ship will be placed at {start_point_input}. For the other end, the following positions are available: {available_positions} ")
+            end_point_input = end_point_input.upper()
+            
+            if end_point_input in available_positions:
+                if end_point_input == ok_right_placement:
+                    for j in range(ship_length):                    
+                        player_board[hor_position][ver_position + j] = "S"
+                elif end_point_input == ok_left_placement:
+                    for j in range(ship_length):
+                        player_board[hor_position][ver_position - j] = "S"
+                elif end_point_input == ok_up_placement:
+                    for j in range(ship_length):
+                        player_board[chr(ord(hor_position) - j)][ver_position] = "S"
+                elif end_point_input == ok_down_placement:
+                    for j in range(ship_length):
+                        player_board[chr(ord(hor_position) + j)][ver_position] = "S"
+                ships_to_place -= 1
+                Print_Board(player_board)
+                
+            else:
+                print("The second end point you have entered is invalid. Let's try again!")
+                player_board[hor_position][ver_position] = "X"
+                continue
 
 
 def Print_Board(visible_board):
@@ -77,184 +172,110 @@ def Intro():
     print(f"I have {ship_no_and_l['Carriers'][0]} carrier(s), {ship_no_and_l['Battleships'][0]} battleships, {ship_no_and_l['Cruisers'][0]} cruisers, {ship_no_and_l['Submarines'][0]} submarines, and {ship_no_and_l['Destroyers'][0]} destroyers.")
     print(f"A carrier is {ship_no_and_l['Carriers'][1]}, a battleship {ship_no_and_l['Battleships'][1]}, a cruiser {ship_no_and_l['Cruisers'][1]}, a submarine {ship_no_and_l['Submarines'][1]}, and a destroyer {ship_no_and_l['Destroyers'][1]} cells long.")
     print("Ships can be placed next to one another, but none are placed diagonally.")
-    print(f"You need a total of {force} hits to win!")
+    print(f"You need a total of {enemy_force} hits to win!")
 
 
 hidden_board = {}
 Fill_With_Recurring_Characters(hidden_board, "X", 10)
 visible_board = copy.deepcopy(hidden_board)
 player_board = copy.deepcopy(hidden_board)
-ship_no_and_l = {"Carriers" : (1, 5), "Battleships" : (2, 4), "Cruisers" : (3, 3), "Submarines" : (3, 3), "Destroyers" : (5, 2)}
-force = 0
+ship_no_and_l = {"Carriers" : (1, 5), "Battleships" : (2, 4), "Cruisers" : (3, 3), "Submarines" : (3, 3), "Destroyers" : (5, 2)} 
+#lehetne ship v vmi class numberrel meg lengthel
+enemy_force = 0
+player_force = 0
 
 for ship in ship_no_and_l:
-    force += ship_no_and_l[ship][0] * ship_no_and_l[ship][1]
+    enemy_force += ship_no_and_l[ship][0] * ship_no_and_l[ship][1]
+    player_force += ship_no_and_l[ship][0] * ship_no_and_l[ship][1]
+    
 
 for placement in ship_no_and_l:
-    Place_Ships(ship_no_and_l[placement][0], ship_no_and_l[placement][1])
-
+    Place_Ships(ship_no_and_l[placement][0], ship_no_and_l[placement][1], hidden_board)
 
 
 Intro()
-Print_Board(visible_board)
+auto_plac_q = 0
 
-print(f"Time to place your ships! Ships can be placed next to one another, but not diagonally. Let's start with the Carriers. You have {ship_no_and_l['Carriers'][0]} carrier(s).")
-
-ships_to_place = ship_no_and_l["Carriers"][0]
-while ships_to_place > 0:
-    start_point_input = input("Where would you like to place the ship? Give me the starting point. ")
-    start_point_input = start_point_input.upper()
-    if not Is_Player_Input_Properly_Formatted(start_point_input):
-        print("Please use the NumberLetter format. One letter, one number. No more, no less.")
-        continue
-    hor_position = start_point_input[0]
-    ver_position = int(start_point_input[1:]) - 1
-    if not Is_Player_Input_Within_Bounds():
-        print("Please use one letter, one number, within the gameboard's range.")
-        continue
-    placement_pos = player_board[hor_position][ver_position]
-    Is_It_Occupied = placement_pos == "S"
-    if Is_It_Occupied:
-        print("There's already a ship there. Let's try again.")
-        continue
+while auto_plac_q != "Manual" and auto_plac_q != "Auto":
+    auto_plac_q = input("Would you like to place your ships (enter 'Manual') or would you like me to place them automatically (enter 'Auto')? ")
+    if auto_plac_q == "Manual":
+        print("Time to place your ships! Ships can be placed next to one another, but not diagonally.")
+        Player_Place_Ship(ship_no_and_l["Carriers"][0], ship_no_and_l["Carriers"][1])
+        Player_Place_Ship(ship_no_and_l["Battleships"][0], ship_no_and_l["Battleships"][1])
+        Player_Place_Ship(ship_no_and_l["Cruisers"][0], ship_no_and_l["Cruisers"][1])
+        Player_Place_Ship(ship_no_and_l["Submarines"][0], ship_no_and_l["Submarines"][1])
+        Player_Place_Ship(ship_no_and_l["Destroyers"][0], ship_no_and_l["Destroyers"][1])
+    elif auto_plac_q == "Auto":
+        for placement in ship_no_and_l:
+            Place_Ships(ship_no_and_l[placement][0], ship_no_and_l[placement][1], player_board)
     else:
-        player_board[hor_position][ver_position] = "S"
-        available_positions = []
-        Print_Board(player_board)
-        ok_right = ver_position + ship_no_and_l["Carriers"][1] <= len(hidden_board["A"]) and ver_position + ship_no_and_l["Carriers"][1] > 0
-        ok_left = ver_position - ship_no_and_l["Carriers"][1] + 1 > -1
-        ok_up = ord(hor_position) - ship_no_and_l["Carriers"][1] - 65 <= len(hidden_board) and ord(hor_position) - ship_no_and_l["Carriers"][1] - 65 >= 0
-        ok_down = ord(hor_position) + ship_no_and_l["Carriers"][1] - 65 <= len(hidden_board) and ord(hor_position) + ship_no_and_l["Carriers"][1] - 65 > 0
-        appropriate_placement_right = str(hor_position) + str(ver_position + ship_no_and_l["Carriers"][1])
-        appropriate_placement_left = str(hor_position) + str(ver_position + 2 - ship_no_and_l["Carriers"][1])
-        appropriate_placement_up = str(chr(ord(hor_position) + 1 - ship_no_and_l["Carriers"][1])) + str(ver_position + 1)
-        appropriate_placement_down = str(chr(ord(hor_position) - 1 + ship_no_and_l["Carriers"][1])) + str(ver_position + 1)
-        if ok_left and player_board[hor_position][ver_position - ship_no_and_l["Carriers"][1] + 1] != "S":
-            available_positions.append(appropriate_placement_left)
-        if ok_right and player_board[hor_position][ver_position + ship_no_and_l["Carriers"][1] - 1] != "S":
-            available_positions.append(appropriate_placement_right)
-        if ok_up and player_board[str(chr(ord(hor_position) + 1 - ship_no_and_l["Carriers"][1]))][ver_position] != "S":
-            available_positions.append(appropriate_placement_up)
-        if ok_down and player_board[str(chr(ord(hor_position) - 1 + ship_no_and_l["Carriers"][1]))][ver_position] != "S":
-            available_positions.append(appropriate_placement_down)
-        end_point_input = input(f"One end point of the ship will be placed at {start_point_input}. For the other end, the following positions are available: {available_positions} ")
-        end_point_input = end_point_input.upper()
-        if end_point_input in available_positions:
-            if end_point_input == appropriate_placement_right:
-                for j in range(ship_no_and_l["Carriers"][1]):                    
-                    player_board[hor_position][ver_position + j] = "S"
-            elif end_point_input == appropriate_placement_left:
-                for j in range(ship_no_and_l["Carriers"][1]):
-                    player_board[hor_position][ver_position - j] = "S"
-            elif end_point_input == appropriate_placement_up:
-                for j in range(ship_no_and_l["Carriers"][1]):
-                    player_board[chr(ord(hor_position) - j)][ver_position] = "S"
-            elif end_point_input == appropriate_placement_down:
-                for j in range(ship_no_and_l["Carriers"][1]):
-                    player_board[chr(ord(hor_position) + j)][ver_position] = "S"
-            ships_to_place -= 1
-        else:
-            print("The second end point you have entered is invalid. Let's try again!")
-            player_board[hor_position][ver_position] = "X"
-            continue
-        Print_Board(player_board)
-        
-        
-ships_to_place = ship_no_and_l["Battleships"][0]
-while ships_to_place > 0:
-    start_point_input = input("Where would you like to place the ship? Give me the starting point. ")
-    start_point_input = start_point_input.upper()
-    if not Is_Player_Input_Properly_Formatted(start_point_input):
-        print("Please use the NumberLetter format. One letter, one number. No more, no less.")
-        continue
-    hor_position = start_point_input[0]
-    ver_position = int(start_point_input[1:]) - 1
-    if not Is_Player_Input_Within_Bounds():
-        print("Please use one letter, one number, within the gameboard's range.")
-        continue
-    placement_pos = player_board[hor_position][ver_position]
-    Is_It_Occupied = placement_pos == "S"
-    if Is_It_Occupied:
-        print("There's already a ship there. Let's try again.")
-        continue
-    else:
-        player_board[hor_position][ver_position] = "S"
-        available_positions = []
-        Print_Board(player_board)
-        ok_right = ver_position + ship_no_and_l["Battleships"][1] <= len(hidden_board["A"]) and ver_position + ship_no_and_l["Battleships"][1] > 0
-        ok_left = ver_position - ship_no_and_l["Battleships"][1] + 1 > -1
-        ok_up = ord(hor_position) - ship_no_and_l["Battleships"][1] - 65 <= len(hidden_board) and ord(hor_position) - ship_no_and_l["Battleships"][1] - 65 >= 0
-        ok_down = ord(hor_position) + ship_no_and_l["Battleships"][1] - 65 <= len(hidden_board) and ord(hor_position) + ship_no_and_l["Battleships"][1] - 65 > 0
-        appropriate_placement_right = str(hor_position) + str(ver_position + ship_no_and_l["Battleships"][1])
-        appropriate_placement_left = str(hor_position) + str(ver_position + 2 - ship_no_and_l["Battleships"][1])
-        appropriate_placement_up = str(chr(ord(hor_position) + 1 - ship_no_and_l["Battleships"][1])) + str(ver_position + 1)
-        appropriate_placement_down = str(chr(ord(hor_position) - 1 + ship_no_and_l["Battleships"][1])) + str(ver_position + 1)
-        if ok_left and player_board[hor_position][ver_position - ship_no_and_l["Battleships"][1] + 1] != "S":
-            available_positions.append(appropriate_placement_left)
-        if ok_right and player_board[hor_position][ver_position + ship_no_and_l["Battleships"][1] - 1] != "S":
-            available_positions.append(appropriate_placement_right)
-        if ok_up and player_board[str(chr(ord(hor_position) + 1 - ship_no_and_l["Battleships"][1]))][ver_position] != "S":
-            available_positions.append(appropriate_placement_up)
-        if ok_down and player_board[str(chr(ord(hor_position) - 1 + ship_no_and_l["Battleships"][1]))][ver_position] != "S":
-            available_positions.append(appropriate_placement_down)
-        end_point_input = input(f"One end point of the ship will be placed at {start_point_input}. For the other end, the following positions are available: {available_positions} ")
-        end_point_input = end_point_input.upper()
-        if end_point_input in available_positions:
-            if end_point_input == appropriate_placement_right:
-                for j in range(ship_no_and_l["Battleships"][1]):                    
-                    player_board[hor_position][ver_position + j] = "S"
-            elif end_point_input == appropriate_placement_left:
-                for j in range(ship_no_and_l["Battleships"][1]):
-                    player_board[hor_position][ver_position - j] = "S"
-            elif end_point_input == appropriate_placement_up:
-                for j in range(ship_no_and_l["Battleships"][1]):
-                    player_board[chr(ord(hor_position) - j)][ver_position] = "S"
-            elif end_point_input == appropriate_placement_down:
-                for j in range(ship_no_and_l["Battleships"][1]):
-                    player_board[chr(ord(hor_position) + j)][ver_position] = "S"
-            ships_to_place -= 1
-        else:
-            print("The second end point you have entered is invalid. Let's try again!")
-            player_board[hor_position][ver_position] = "X"
-            continue
-        Print_Board(player_board)
-        # MI VAN, HA AZ "S" NEM A VÉGPONT, CSAK ÁTVÁG RAJTA??? VAGY HA NINCS APPROPRIATE PLACEMENT LEHETŐSÉG??????????????
-    
-torpedos = 30
+        print("I'm sorry, I didn't get that. Please enter 'Manual' or 'Auto'.")
 
-while torpedos > 0 and force > 0:
-    guess = input(f"You can only miss {torpedos} times! Use the NumberLetter (e.g. A1) format and make a guess! ")
+
+while player_force > 0 and enemy_force > 0:
+    Print_Board(visible_board)
+    guess = input(f"The enemy has a force of {enemy_force}! Use the NumberLetter (e.g. A1) format and make a guess! ")
     guess = guess.upper()
-    # Is_Guess_Properly_Formatted = guess and guess[0].isalpha() and guess[1:].isnumeric()
+    
     if not Is_Player_Input_Properly_Formatted(guess):
         print("Please use the NumberLetter format. One letter, one number. No more, no less.")
         continue
+    
     hor_position = guess[0]
     ver_position = int(guess[1:]) - 1
-    # Is_Guess_Within_Bounds = ord(hor_position) - 65 < len(hidden_board) and ver_position <= len(hidden_board["A"]) - 1 and ver_position != -1
-    if not Is_Player_Input_Within_Bounds():
+    
+    if not Is_Player_Input_Within_Bounds(hor_position, ver_position):
         print("Please use one letter, one number, within the gameboard's range.")
         continue
+    
     guess_pos = hidden_board[hor_position][ver_position]
     visible_guess_pos = visible_board[hor_position][ver_position]
     Is_It_Previous_Guess = visible_guess_pos == "H" or visible_guess_pos == "O"
     Is_Ship_Hit = guess_pos == "S"
+    
     if Is_It_Previous_Guess:
-        torpedos -= 1
-        print(f"Hey, you've already tried that! You can only miss {torpedos} more times!")
+        print("Hey, you've already tried that!")
         Print_Board(visible_board)
+    
     elif Is_Ship_Hit:
-        force -= 1
+        enemy_force -= 1
         visible_board[hor_position][ver_position] = "H"
-        print(f"That's a hit!!! The enemy is left at {force} strength!")
+        print(f"That's a hit!!! You murderer! Those sailors had families... The enemy is left at {enemy_force} strength!")
         Print_Board(visible_board)
+    
     else:
-        torpedos -= 1
         visible_board[hor_position][ver_position] = "O"
-        print(f"That's a miss! You can only try {torpedos} more times!")
+        print(f"That's a miss! The enemy is still at {enemy_force} strength!")
         Print_Board(visible_board)
+    
+    print("The enemy is shooting...")
+    hor_position = str(chr(randrange(len(player_board)) + 65))
+    ver_position = randrange(len(player_board))
+    enemy_shot = player_board[hor_position][ver_position]
+    Is_It_Previous_Guess = enemy_shot == "H" or enemy_shot == "O"
+    Is_Player_Ship_Hit = enemy_shot == "S"
+    
+    while Is_It_Previous_Guess:
+        # TÖRLENDŐ PRINTEK
+        print(f"Whoops, that was the previous guess. It was {hor_position}{ver_position} Let's try again.")
+        hor_position = str(chr(randrange(len(player_board)) + 65))
+        ver_position = randrange(len(player_board))
+        enemy_shot = player_board[hor_position][ver_position]
+        print(f"The new guess is {hor_position}{ver_position}.")
+        
+    if Is_Player_Ship_Hit:
+        player_force -= 1
+        player_board[hor_position][ver_position] = "H"
+        Print_Board(player_board)
+        print(f"We're hit!!! We're down to {player_force} strength!")
+    
+    else:
+        player_board[hor_position][ver_position] = "O"
+        Print_Board(player_board)
+        print(f"That's a miss! Thank the gods! We're still at {player_force} strength!")
 
-if torpedos == 0:
+
+if player_force == 0:
     print("Bad luck, Captain! We've lost!!!")
-if force == 0:
+if enemy_force == 0:
     print("Well done, Captain! We won!!!")
