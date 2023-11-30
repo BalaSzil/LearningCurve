@@ -3,6 +3,15 @@ import copy
 from random import randrange
 from colorama import Fore, Style
 
+class Ship:
+    
+    def __init__(self, number, length):
+        self.ship_number = number
+        self.ship_length = length
+        
+        # self.horizontal_direction = (0, 0)
+        # self.vertical_direction = (0, 0)
+
 
 def fill_with_recurring_characters(library_to_fill, character, length):
     for i, char in enumerate(string.ascii_uppercase[:length]):
