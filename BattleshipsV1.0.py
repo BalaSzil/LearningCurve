@@ -3,15 +3,6 @@ import copy
 from random import randrange
 from colorama import Fore, Style
 
-class Ship:
-    
-    def __init__(self, number, length):
-        self.ship_number = number
-        self.ship_length = length
-        
-        # self.horizontal_direction = (0, 0)
-        # self.vertical_direction = (0, 0)
-
 
 def fill_with_recurring_characters(library_to_fill, character, length):
     for i, char in enumerate(string.ascii_uppercase[:length]):
@@ -177,6 +168,151 @@ def intro():
     print(f"A carrier is {ship_no_and_length['Carriers'][1]}, a battleship {ship_no_and_length['Battleships'][1]}, a cruiser {ship_no_and_length['Cruisers'][1]}, a submarine {ship_no_and_length['Submarines'][1]}, and a destroyer {ship_no_and_length['Destroyers'][1]} cells long.")
     print("Ships can be placed next to one another, but none are placed diagonally.")
     print(f"You need a total of {enemy_force} hits to win!")
+    
+
+def run_easy_mode(enemy_force, player_force):
+    shots_taken_by_player = 0
+    
+    while player_force > 0 and enemy_force > 0:
+        print_board(visible_board)
+        guess = input(f"The enemy has a force of {enemy_force}! Use the NumberLetter (e.g. A1) format and make a guess! ")
+        guess = guess.upper()
+        
+        if not is_player_input_properly_formatted(guess):
+            print("Please use the NumberLetter format. One letter, one number. No more, no less.")
+            continue
+        
+        hor_position = guess[0]
+        ver_position = int(guess[1:]) - 1
+        
+        if not is_player_input_within_bounds(hor_position, ver_position):
+            print("Please use one letter, one number, within the gameboard's range.")
+            continue
+        
+        guess_pos = hidden_board[hor_position][ver_position]
+        visible_guess_pos = visible_board[hor_position][ver_position]
+        is_it_previous_guess = visible_guess_pos == "H" or visible_guess_pos == "O"
+        is_ship_hit = guess_pos == "S"
+        
+        if is_it_previous_guess:
+            print("Hey, you've already tried that! You just missed a turn!")
+        
+        elif is_ship_hit:
+            enemy_force -= 1
+            visible_board[hor_position][ver_position] = "H"
+            print(f"That's a hit!!! You murderer! Those sailors had families... The enemy is left at {enemy_force} strength!")
+            shots_taken_by_player += 1
+            print_board(visible_board)
+        
+        else:
+            visible_board[hor_position][ver_position] = "O"
+            print(f"That's a miss! The enemy is still at {enemy_force} strength!")
+            shots_taken_by_player += 1
+            print_board(visible_board)
+        
+        print("The enemy is shooting...")
+        hor_position = str(chr(randrange(len(player_board)) + 65))
+        ver_position = randrange(len(player_board))
+        enemy_shot = player_board[hor_position][ver_position]
+        is_it_previous_guess = enemy_shot == "H" or enemy_shot == "O"
+        is_player_ship_hit = enemy_shot == "S"
+        
+        while is_it_previous_guess:
+            hor_position = str(chr(randrange(len(player_board)) + 65))
+            ver_position = randrange(len(player_board))
+            enemy_shot = player_board[hor_position][ver_position]
+            is_it_previous_guess = enemy_shot == "H" or enemy_shot == "O"
+            
+        if is_player_ship_hit:
+            player_force -= 1
+            player_board[hor_position][ver_position] = "H"
+            print_board(player_board)
+            print(f"The enemy shot at {hor_position}{ver_position + 1}! We're hit!!! We're down to {player_force} strength!")
+        
+        else:
+            player_board[hor_position][ver_position] = "O"
+            print_board(player_board)
+            print(f"The enemy shot at {hor_position}{ver_position + 1}! That's a miss! Thank the gods! We're still at {player_force} strength!")
+            
+    if player_force == 0:
+        print(f"Noob play, Captain! We've lost!!! You've made {shots_taken_by_player} shots in the course of the game.")
+    if enemy_force == 0:
+        print(f"GG, Captain! We won!!! You've made {shots_taken_by_player} shots in the course of the game.")
+        
+
+def run_moderate_mode(enemy_force, player_force):
+    shots_taken_by_player = 0
+    
+    while player_force > 0 and enemy_force > 0:
+        print_board(visible_board)
+        guess = input(f"The enemy has a force of {enemy_force}! Use the NumberLetter (e.g. A1) format and make a guess! ")
+        guess = guess.upper()
+        
+        if not is_player_input_properly_formatted(guess):
+            print("Please use the NumberLetter format. One letter, one number. No more, no less.")
+            continue
+        
+        hor_position = guess[0]
+        ver_position = int(guess[1:]) - 1
+        
+        if not is_player_input_within_bounds(hor_position, ver_position):
+            print("Please use one letter, one number, within the gameboard's range.")
+            continue
+        
+        guess_pos = hidden_board[hor_position][ver_position]
+        visible_guess_pos = visible_board[hor_position][ver_position]
+        is_it_previous_guess = visible_guess_pos == "H" or visible_guess_pos == "O"
+        is_ship_hit = guess_pos == "S"
+        
+        if is_it_previous_guess:
+            print("Hey, you've already tried that! You just missed a turn!")
+        
+        elif is_ship_hit:
+            enemy_force -= 1
+            visible_board[hor_position][ver_position] = "H"
+            print(f"That's a hit!!! You murderer! Those sailors had families... The enemy is left at {enemy_force} strength!")
+            shots_taken_by_player += 1
+            print_board(visible_board)
+        
+        else:
+            visible_board[hor_position][ver_position] = "O"
+            print(f"That's a miss! The enemy is still at {enemy_force} strength!")
+            shots_taken_by_player += 1
+            print_board(visible_board)
+        
+        print("The enemy is shooting...")
+        enemy_shot = moderate_level_enemy_shoots()
+        is_it_previous_guess = enemy_shot == "H" or enemy_shot == "O"
+        is_player_ship_hit = enemy_shot == "S"
+        
+        while is_it_previous_guess:
+            enemy_shot = moderate_level_enemy_shoots()
+            enemy_shot = player_board[hor_position][ver_position]
+            is_it_previous_guess = enemy_shot == "H" or enemy_shot == "O"
+            
+        if is_player_ship_hit:
+            player_force -= 1
+            player_board[hor_position][ver_position] = "H"
+            print_board(player_board)
+            print(f"The enemy shot at {hor_position}{ver_position + 1}! We're hit!!! We're down to {player_force} strength!")
+        
+        else:
+            player_board[hor_position][ver_position] = "O"
+            print_board(player_board)
+            print(f"The enemy shot at {hor_position}{ver_position + 1}! That's a miss! Thank the gods! We're still at {player_force} strength!")
+    
+    if player_force == 0:
+        print(f"Noob play, Captain! We've lost!!! You've made {shots_taken_by_player} shots in the course of the game.")
+    if enemy_force == 0:
+        print(f"GG, Captain! We won!!! You've made {shots_taken_by_player} shots in the course of the game.")
+        
+
+def moderate_level_enemy_shoots():
+    pass
+
+
+def check_board():
+    pass
 
 
 hidden_board = {}
@@ -187,7 +323,6 @@ ship_no_and_length = {"Carriers" : (1, 5), "Battleships" : (2, 4), "Cruisers" : 
 #lehetne ship v vmi class numberrel meg lengthel
 enemy_force = 0
 player_force = 0
-shots_taken_by_player = 0
 
 for ship in ship_no_and_length:
     enemy_force += ship_no_and_length[ship][0] * ship_no_and_length[ship][1]
@@ -222,69 +357,16 @@ while auto_placement_prompt.upper() != "MANUAL" or auto_placement_prompt != "AUT
         print("I'm sorry, I didn't get that. Please enter 'Manual' or 'Auto'.")
 
 
-while player_force > 0 and enemy_force > 0:
-    print_board(visible_board)
-    guess = input(f"The enemy has a force of {enemy_force}! Use the NumberLetter (e.g. A1) format and make a guess! ")
-    guess = guess.upper()
+difficulty_prompt = ""
+
+while difficulty_prompt.upper() != "EASY" or difficulty_prompt.upper() != "MODERATE" or difficulty_prompt.upper() != "HARD":
+    difficulty_prompt = input("What difficulty would you like to play on? Please enter 'Easy' or 'Moderate'. ")
     
-    if not is_player_input_properly_formatted(guess):
-        print("Please use the NumberLetter format. One letter, one number. No more, no less.")
-        continue
-    
-    hor_position = guess[0]
-    ver_position = int(guess[1:]) - 1
-    
-    if not is_player_input_within_bounds(hor_position, ver_position):
-        print("Please use one letter, one number, within the gameboard's range.")
-        continue
-    
-    guess_pos = hidden_board[hor_position][ver_position]
-    visible_guess_pos = visible_board[hor_position][ver_position]
-    is_it_previous_guess = visible_guess_pos == "H" or visible_guess_pos == "O"
-    is_ship_hit = guess_pos == "S"
-    
-    if is_it_previous_guess:
-        print("Hey, you've already tried that! You just missed a turn!")
-    
-    elif is_ship_hit:
-        enemy_force -= 1
-        visible_board[hor_position][ver_position] = "H"
-        print(f"That's a hit!!! You murderer! Those sailors had families... The enemy is left at {enemy_force} strength!")
-        shots_taken_by_player += 1
-        print_board(visible_board)
-    
-    else:
-        visible_board[hor_position][ver_position] = "O"
-        print(f"That's a miss! The enemy is still at {enemy_force} strength!")
-        shots_taken_by_player += 1
-        print_board(visible_board)
-    
-    print("The enemy is shooting...")
-    hor_position = str(chr(randrange(len(player_board)) + 65))
-    ver_position = randrange(len(player_board))
-    enemy_shot = player_board[hor_position][ver_position]
-    is_it_previous_guess = enemy_shot == "H" or enemy_shot == "O"
-    is_player_ship_hit = enemy_shot == "S"
-    
-    while is_it_previous_guess:
-        hor_position = str(chr(randrange(len(player_board)) + 65))
-        ver_position = randrange(len(player_board))
-        enemy_shot = player_board[hor_position][ver_position]
-        is_it_previous_guess = enemy_shot == "H" or enemy_shot == "O"
+    if difficulty_prompt.upper() == "EASY":       
+        run_easy_mode(enemy_force, player_force)
+            
+    elif difficulty_prompt.upper() == "Moderate":
+        run_moderate_mode(enemy_force, player_force)
         
-    if is_player_ship_hit:
-        player_force -= 1
-        player_board[hor_position][ver_position] = "H"
-        print_board(player_board)
-        print(f"The enemy shot at {hor_position}{ver_position + 1}! We're hit!!! We're down to {player_force} strength!")
-    
     else:
-        player_board[hor_position][ver_position] = "O"
-        print_board(player_board)
-        print(f"The enemy shot at {hor_position}{ver_position + 1}! That's a miss! Thank the gods! We're still at {player_force} strength!")
-
-
-if player_force == 0:
-    print(f"Noob play, Captain! We've lost!!! You've made {shots_taken_by_player} shots in the course of the game.")
-if enemy_force == 0:
-    print(f"GG, Captain! We won!!! You've made {shots_taken_by_player} shots in the course of the game.")
+        print("I'm sorry, I didn't get that. Please enter 'Easy' or 'Moderate'.")

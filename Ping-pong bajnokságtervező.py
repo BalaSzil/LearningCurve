@@ -5,11 +5,8 @@ import copy
 def get_inputs():
     
     number_of_tables = get_number_of_tables()
-            
     players_per_table, minimum_number_of_players = get_players_per_table(number_of_tables)
-    
     total_number_of_players = get_total_number_of_players(minimum_number_of_players)
-    
     player_names = get_player_names(total_number_of_players)
     
     return (number_of_tables, players_per_table, total_number_of_players, player_names)
